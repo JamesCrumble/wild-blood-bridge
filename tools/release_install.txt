@@ -1,0 +1,30 @@
+Wild Blood Bridge - установка
+=============================
+
+Wild Blood (Gameloft, v1.1.5, только 32-бит) на 64-битном телефоне через qemu-user и проброс GLES на GPU.
+Файлы игры в комплект не входят: нужны ваши APK версии 1.1.5 и кэш к ней.
+
+1. Установить WildBlood-Bridge-<версия>.apk (приложение "Wild Blood", пакет com.jamescrumble.wildblood).
+
+2. Положить файлы игры (по adb или любым файловым менеджером) в папку
+   /sdcard/Android/data/com.jamescrumble.wildblood/files/ :
+
+       <оригинальный APK игры 1.1.5>.apk
+       com.gameloft.android.ANMP.GloftWBHM/files/AOWGame/...     (распакованный кэш)
+       com.gameloft.android.ANMP.GloftWBHM/files/Engine/...
+
+   То есть папка com.gameloft.android.ANMP.GloftWBHM из архива кэша кладётся целиком.
+   Файл main.*.obb из архива не нужен: это те же данные одним zip-ом.
+   Подойдёт и вариант, когда папки AOWGame и Engine лежат прямо в .../files/.
+   Если копировали по adb, откройте папки приложению:
+       adb shell "find /sdcard/Android/data/com.jamescrumble.wildblood -type d -exec chmod 2777 {} +"
+
+   Пример:
+       adb push "WildBlood_v1.1.5.apk" /sdcard/Android/data/com.jamescrumble.wildblood/files/
+       adb push com.gameloft.android.ANMP.GloftWBHM /sdcard/Android/data/com.jamescrumble.wildblood/files/
+
+3. Открыть приложение: сначала появятся настройки (разрешение, лимит кадров, звук, ядра),
+   кнопка "Играть" запускает игру. Первый запуск дольше: распаковывается sysroot (~100 МБ).
+
+Исходники - WildBlood-Bridge-<версия>-src.zip (сборка описана в README.md).
+Контрольные суммы - SHA256SUMS.
