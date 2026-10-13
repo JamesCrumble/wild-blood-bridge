@@ -558,8 +558,9 @@ final class GameProcess {
     }
 
     /**
-     * A cache zip into dir with its folders as they are in the archive. A main.*.obb inside is skipped: where
-     * an archive carries one, it is the same data once more in a single file.
+     * A cache zip into dir, from the game's own folder down: whatever folders the archive wraps it in are
+     * dropped. A main.*.obb inside is skipped: where an archive carries one, it is the same data once more
+     * in a single file.
      */
     private void extractCache(File zip, File dir) throws IOException {
         String base = dir.getCanonicalPath() + File.separator;
@@ -577,6 +578,9 @@ final class GameProcess {
                 ZipEntry e = en.nextElement();
                 String n = e.getName();
                 if (e.isDirectory() || n.endsWith(".obb") || n.endsWith(".url")) continue;
+                // Archives often wrap the game's folder in one of their own ("DK/com.gameloft.../files/...").
+                int at = n.indexOf(GAME_PACKAGE + "/");
+                if (at > 0) n = n.substring(at);
                 File out = new File(dir, n);
                 if (!out.getCanonicalPath().startsWith(base)) throw new IOException("bad zip entry " + n);
                 File parent = out.getParentFile();
