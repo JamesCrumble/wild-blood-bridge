@@ -104,7 +104,8 @@ GPU телефона. Способ тот же, что в NOVA3 Bridge, TDKR Bri
 | Чёрный экран: `PlatformSwapBuffers` движка — пустая функция, кадр на Android показывает `GLSurfaceView` | порт показывает кадр после каждого `nativeRender` | `game/main.cpp` |
 | Движок читает `KeyEvent.KEYCODE_*` статическими int-полями | класс `KeyEvent`; чтение статических числовых полей возвращает значение | `game/jni/`, `portbase/jni/jni.cpp` |
 
-Подробности и то, как каждое было найдено, — в [PROJECT_STATE.md](PROJECT_STATE.md). История версий — в
+Пошаговый разбор — что было видно, как нашли причину, что исправили — в
+[docs/PORTING_GUIDE.md](docs/PORTING_GUIDE.md) ([English](docs/PORTING_GUIDE.en.md)); текущее состояние — в [PROJECT_STATE.md](PROJECT_STATE.md). История версий — в
 [CHANGELOG.md](CHANGELOG.md). Архитектура обёртки — в [port/android/README.md](port/android/README.md).
 
 ## Структура
