@@ -6,22 +6,21 @@ Wild Blood (Gameloft, v1.1.5, только 32-бит) на 64-битном те�
 
 1. Установить WildBlood-Bridge-<версия>.apk (приложение "Wild Blood", пакет com.jamescrumble.wildblood).
 
-2. Положить файлы игры (по adb или любым файловым менеджером) в папку
-   /sdcard/Android/data/com.jamescrumble.wildblood/files/ :
+2. Запустить приложение один раз и закрыть: появится папка
 
-       <оригинальный APK игры 1.1.5>.apk
-       com.gameloft.android.ANMP.GloftWBHM/files/AOWGame/...     (распакованный кэш)
-       com.gameloft.android.ANMP.GloftWBHM/files/Engine/...
+   /sdcard/Android/data/com.jamescrumble.wildblood/files/
 
-   То есть папка com.gameloft.android.ANMP.GloftWBHM из архива кэша кладётся целиком.
-   Файл main.*.obb из архива не нужен: это те же данные одним zip-ом.
-   Подойдёт и вариант, когда папки AOWGame и Engine лежат прямо в .../files/.
-   Если копировали по adb, откройте папки приложению:
+   Положить в неё два файла как есть (по кабелю с компьютера или файловым менеджером):
+
+       <оригинальный APK игры 1.1.5>.apk          (не устанавливать, просто файлом)
+       <zip-архив с кэшем игры>.zip            (не распаковывать)
+
+   Имена файлов не важны, важны расширения. Архив нужен именно zip; приложение распакует его само
+   при первом запуске игры.
+
+   Вместо архива можно положить в ту же папку уже распакованную папку com.gameloft.android.ANMP.GloftWBHM
+   (внутри files/ лежат AOWGame и Engine). Если копировали её по adb, откройте папки приложению:
        adb shell "find /sdcard/Android/data/com.jamescrumble.wildblood -type d -exec chmod 2777 {} +"
-
-   Пример:
-       adb push "WildBlood_v1.1.5.apk" /sdcard/Android/data/com.jamescrumble.wildblood/files/
-       adb push com.gameloft.android.ANMP.GloftWBHM /sdcard/Android/data/com.jamescrumble.wildblood/files/
 
 3. Открыть приложение: сначала появятся настройки (разрешение, лимит кадров, звук, ядра),
    кнопка "Играть" запускает игру. Первый запуск дольше: распаковывается sysroot (~100 МБ).

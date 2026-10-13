@@ -34,15 +34,17 @@ GPU телефона. Способ тот же, что в NOVA3 Bridge, TDKR Bri
 ## Установка
 
 1. Установите `WildBlood-Bridge-<версия>.apk` (пакет `com.jamescrumble.wildblood`).
-2. Положите в `/sdcard/Android/data/com.jamescrumble.wildblood/files/`:
-   - оригинальный APK игры 1.1.5;
-   - папку `com.gameloft.android.ANMP.GloftWBHM` из распакованного архива кэша (внутри `files/AOWGame`,
-     `files/Engine`). Файл `main.*.obb` из архива не нужен: это те же данные одним zip-ом.
-3. Если копировали по adb, откройте папки приложению (adb создаёт их от имени `shell`):
-   `adb shell "find /sdcard/Android/data/com.jamescrumble.wildblood -type d -exec chmod 2777 {} +"`
+2. Запустите приложение один раз и закройте: появится папка `/sdcard/Android/data/com.jamescrumble.wildblood/files/`.
+3. Положите в неё два файла как есть: оригинальный APK игры 1.1.5 и zip-архив с её кэшем. Имена не важны.
+   Приложение само распакует архив при первом запуске игры (около 1,5 ГБ).
 4. Откройте приложение, при необходимости поменяйте настройки и нажмите «Играть».
 
-Из папки проекта шаги 2–3 делает `tools/push_data.sh`. Если чего-то не хватает, причина пишется на экране и в
+Распаковка вручную тоже подходит: папку `com.gameloft.android.ANMP.GloftWBHM` из архива кэша (внутри
+`files/AOWGame`, `files/Engine`) положить в ту же папку целиком; файл `main.*.obb` из архива не нужен.
+Если копировали по adb, откройте папки приложению (adb создаёт их от имени `shell`):
+`adb shell "find /sdcard/Android/data/com.jamescrumble.wildblood -type d -exec chmod 2777 {} +"`
+
+Из папки проекта ручную раскладку делает `tools/push_data.sh`. Если чего-то не хватает, причина пишется на экране и в
 `wb.log` в папке с файлами игры. Первый запуск дольше: распаковывается sysroot (~100 МБ), а игра компилирует
 свои шейдеры (около минуты до меню).
 
