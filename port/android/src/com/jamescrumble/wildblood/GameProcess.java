@@ -63,7 +63,7 @@ final class GameProcess {
     private final File commandsFile;
     private final File statusFile;
     private final File fifo;
-    private final File logFile;
+    private volatile File logFile;
     private final LinkedList<Cmd> queue = new LinkedList<>();
     private volatile boolean running;
     private volatile boolean muted = true;
@@ -80,8 +80,7 @@ final class GameProcess {
         commandsFile = new File(control, "commands");
         statusFile = new File(control, "status.json");
         fifo = new File(root, "audio.pcm");
-        File external = ctx.getExternalFilesDir(null);
-        logFile = new File(external != null ? external : root, "wb.log");
+        logFile = new File(Storage.mainDir(ctx), "wb.log");
         // pad_overlay.flag next to the log brings back the wrapper's own gamepad-style overlay.
         touchMode = !new File(logFile.getParentFile(), "pad_overlay.flag").exists();
         perf = new PerfHint(ctx, msg -> appendLog("[perf] " + msg));
@@ -101,7 +100,7 @@ final class GameProcess {
         try { h = Integer.parseInt(SettingsActivity.load(ctx).getOrDefault("RENDER_HEIGHT", "720")); } catch (NumberFormatException ignored) { }
         h = Math.max(240, Math.min(h, 2160)) & ~1;
         int w = Math.round(h * (float) longSide / shortSide) & ~1;
-        String over = readText(new File(logFile.getParentFile(), "resolution.txt")).trim();
+        String over = readText(Storage.find(ctx, "resolution.txt")).trim();
         java.util.regex.Matcher mt = java.util.regex.Pattern.compile("(\\d+)x(\\d+)").matcher(over);
         if (mt.matches()) {
             w = Integer.parseInt(mt.group(1));
@@ -122,6 +121,11 @@ final class GameProcess {
 
     void start() throws Exception {
         stopStale();
+        // With all-files access everything of Android/data/<package>/files moves to BridgeGames/<package>, which
+        // then becomes the main folder; the log and the settings are looked up there from here on.
+        int moved = Storage.migrate(ctx, listener::onStatus);
+        logFile = new File(Storage.mainDir(ctx), logFile.getName());
+        if (moved > 0) appendLog("[wrapper] moved " + moved + " files to " + Storage.mainDir(ctx));
         prepare();
         launch();
     }
@@ -220,9 +224,9 @@ final class GameProcess {
         File libDir = new File(game, "lib/armeabi-v7a");
         libDir.mkdirs();
 
-        File external = ctx.getExternalFilesDir(null);
-        String where = external == null ? "Android/data/" + ctx.getPackageName() + "/files" : external.getPath();
-        File apk = external == null ? null : firstWithSuffix(external, ".apk");
+        File external = Storage.mainDir(ctx);
+        String where = Storage.describe(ctx);
+        File apk = external == null ? null : Storage.firstWithSuffix(ctx, ".apk");
         if (apk == null) {
             throw new IOException("Не найден оригинальный APK игры (v1.1.5).\nПоложите его в папку:\n" + where);
         }
@@ -230,13 +234,13 @@ final class GameProcess {
         extractNative(apk, new File(libDir, "libUnrealEngine3.so"));
 
         // The cache (AOWGame/, Engine/) stays where the player put it; the port reads it through game/files.
-        File data = external == null ? null : findData(external);
+        File data = external == null ? null : findDataAnywhere();
         if (data == null && external != null) {
             // Simplest for the player: the cache archive as a zip next to the game APK, unpacked here once.
-            File zip = firstWithSuffix(external, ".zip");
+            File zip = Storage.firstWithSuffix(ctx, ".zip");
             if (zip != null) {
                 extractCache(zip, external);
-                data = findData(external);
+                data = findDataAnywhere();
             }
         }
         if (data == null) {
@@ -252,7 +256,7 @@ final class GameProcess {
             new File(external, GAME_PACKAGE + "/files/Engine").mkdirs();
             throw new IOException("Не найден кэш игры (папки AOWGame и Engine).\nПоложите zip-архив с кэшем рядом с APK игры, в папку:\n" + where
                     + "\nЛибо распакуйте архив сами и положите содержимое папки\n"
-                    + GAME_PACKAGE + "/files\nв уже созданную папку:\n" + where + "/" + GAME_PACKAGE + "/files");
+                    + GAME_PACKAGE + "/files\nв уже созданную папку:\n" + external.getPath() + "/" + GAME_PACKAGE + "/files");
         }
         File link = new File(game, "files");
         String target = "";
@@ -281,6 +285,15 @@ final class GameProcess {
     }
 
     /** The folder holding AOWGame/ and Engine/: the archive's own layout, or the folders put there directly. */
+    /** The data in the main folder, or else in the other one. */
+    private File findDataAnywhere() {
+        for (File dir : Storage.sources(ctx)) {
+            File f = findData(dir);
+            if (f != null) return f;
+        }
+        return null;
+    }
+
     private static File findData(File external) {
         File[] candidates = {
             new File(external, GAME_PACKAGE + "/files"),
@@ -600,13 +613,6 @@ final class GameProcess {
             }
         }
         if (count == 0) throw new IOException("В zip нет файлов кэша\nНужен кэш игры 1.1.5: " + zip.getName());
-    }
-
-    private static File firstWithSuffix(File dir, String suffix) {
-        File[] files = dir.listFiles((d, n) -> n.endsWith(suffix));
-        if (files == null || files.length == 0) return null;
-        Arrays.sort(files);
-        return files[0];
     }
 
     private static int intField(String s, String key) {
